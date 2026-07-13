@@ -1,0 +1,2 @@
+distance,objid,ra,dec,cModelMag_u,cModelMag_g,cModelMag_r,cModelMag_i,cModelMag_z,cModelMagErr_u,cModelMagErr_g,cModelMagErr_r,cModelMagErr_i,cModelMagErr_z,extinction_u,extinction_g,extinction_r,extinction_i,extinction_z
+2.01134480394772,1237654030866972851,175.060870795987,3.14267958868622,19.42916,19.16738,18.01967,17.56469,17.24742,0.181431,0.01881535,0.009424657,0.009630988,0.02269375,0.08563281,0.0667245,0.0461597,0.03430161,0.02551409
