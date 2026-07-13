@@ -5,8 +5,8 @@ import pandas as pd
 # 定義數據目錄與目標合併檔案路徑
 # 預設數據位於 ../data/redshift/，合併後存放在 ../data/merged_redshifts.csv
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "data", "catalog"))
-OUTPUT_FILE = os.path.abspath(os.path.join(BASE_DIR, "..", "data", "merged_catalog.csv"))
+DATA_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "data", "catalog", "train_ps1"))
+OUTPUT_FILE = os.path.abspath(os.path.join(BASE_DIR, "..", "data", "merged_training_ps1.csv"))
 
 def merge_csv_files():
     # 使用 glob 獲取所有符合 pattern 的 csv 檔案
