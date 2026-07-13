@@ -1,1 +1,0 @@
-distance,objid,ra,dec,cModelMag_u,cModelMag_g,cModelMag_r,cModelMag_i,cModelMag_z,cModelMagErr_u,cModelMagErr_g,cModelMagErr_r,cModelMagErr_i,cModelMagErr_z,extinction_u,extinction_g,extinction_r,extinction_i,extinction_z,sdss_photo_redshift,sdss_photo_redshift_error,photoErrorClass,specObjID,spec_redshift,spec_redshift_error
