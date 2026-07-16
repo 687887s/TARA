@@ -1,3 +1,4 @@
 astro13.venv/*
 */*.fits
 merged*
+training_data.csv
