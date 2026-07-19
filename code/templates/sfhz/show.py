@@ -26,6 +26,7 @@ for i, z in enumerate([0.1, 3., 8.]):
     for t in templ:
         tnorm = t.integrate_filter(vz, z=z, flam=True)
         igm = t.igm_absorption(z=z)
+        # pyrefly: ignore [unsupported-operation]
         axes[i].plot(t.wave/1.e4, t.flux_flam(z=z)/tnorm*igm, alpha=0.5)
         
     axes[i].set_xlim(0.1, 2)
@@ -39,6 +40,7 @@ fig.tight_layout(pad=1)
 fig.savefig('corr_sfhz_zdependence.png')
 
 # Parameter variation with redshift
+# pyrefly: ignore [missing-import]
 from grizli import utils
 from astropy.cosmology import WMAP9
 
@@ -75,6 +77,7 @@ xt = np.arange(0,12.1,2)
 axes[i].set_xticklabels(xt)
 axes[i].set_xticks(np.log(1+xt))
 
+# pyrefly: ignore [missing-attribute]
 axes[0].plot(np.log(1+np.array(zstep)), WMAP9.age(zstep), color='0.8', marker='.', label='WMAP9')
 axes[0].legend(loc='upper right')
 

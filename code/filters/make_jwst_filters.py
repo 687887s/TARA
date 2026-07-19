@@ -3,15 +3,22 @@ Generate JWST filter throughput curves with Pandeia
 """
 def go():
     import os
+    # pyrefly: ignore [missing-import]
     import pysynphot as S
     import numpy as np
     import matplotlib.pyplot as plt
     
+    # pyrefly: ignore [missing-import]
     import pandeia.engine as etc
+    # pyrefly: ignore [missing-import]
     import pandeia.engine.jwst
+    # pyrefly: ignore [missing-import]
     import pandeia.engine.calc_utils
+    # pyrefly: ignore [missing-import]
     import pandeia.engine.etc3D
+    # pyrefly: ignore [missing-import]
     import pandeia.engine.source
+    # pyrefly: ignore [missing-import]
     import pandeia.engine.observation
     
     nis = etc.jwst.NIRISS(mode='imaging', config={})
@@ -51,12 +58,15 @@ def go():
     today = '290419'
     
     for mode in modes:
+        # pyrefly: ignore [not-callable]
         ins = mode[0](mode=mode[1])
         ins_str = ins.as_dict()['instrument']['instrument']
         #filters = ins.filters
+        # pyrefly: ignore [bad-index]
         for filter in filters[tuple(mode)]:
             label='{0} {1} {2}'.format(mode[0], mode[1], filter)
             
+            # pyrefly: ignore [not-callable]
             ins = mode[0](mode=mode[1], config={'instrument':{'filter':filter}})
             
             filter_file = os.path.join(ins.ref_dir, ins.paths[filter])

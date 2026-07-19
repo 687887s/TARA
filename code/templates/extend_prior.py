@@ -23,8 +23,11 @@ def go(mags=(15,30.1,0.5), redshifts=(0.01, 12, 0.01), coeff_file='prior_K_zmax7
     lines = fp.readlines()
     fp.close()
     
+    # pyrefly: ignore [missing-attribute]
     mag_list = np.cast[float](lines[0].split()[2:])
+    # pyrefly: ignore [missing-attribute]
     z0 = np.cast[float](lines[1].split()[1:])
+    # pyrefly: ignore [missing-attribute]
     gamma = np.cast[float](lines[2].split()[1:])
     
     z_grid = np.arange(redshifts[0], redshifts[1], redshifts[2])
@@ -44,21 +47,31 @@ def go(mags=(15,30.1,0.5), redshifts=(0.01, 12, 0.01), coeff_file='prior_K_zmax7
     gamma_grid = np.interp(mag_grid, mag_list, gamma)
     
     #### Linear extrapolations of fit coefficients
+    # pyrefly: ignore [not-callable]
     p_z0 = scipy.polyfit(mag_list[:3], z0[:3], 1)
+    # pyrefly: ignore [not-callable, unsupported-operation]
     z0_grid[mag_grid < mag_list[0]] = np.maximum(scipy.polyval(p_z0, mag_grid[mag_grid < mag_list[0]]), 0.05)
+    # pyrefly: ignore [not-callable]
     p_z0 = scipy.polyfit(mag_list[-3:], z0[-3:], 1)
+    # pyrefly: ignore [not-callable, unsupported-operation]
     z0_grid[mag_grid > mag_list[-1]] = np.maximum(scipy.polyval(p_z0, mag_grid[mag_grid > mag_list[-1]]), 0.05)
 
+    # pyrefly: ignore [not-callable]
     p_gamma = scipy.polyfit(mag_list[:3], gamma[:3], 1)
+    # pyrefly: ignore [not-callable, unsupported-operation]
     gamma_grid[mag_grid < mag_list[0]] = np.maximum(scipy.polyval(p_gamma, mag_grid[mag_grid < mag_list[0]]), 0.05)
+    # pyrefly: ignore [not-callable]
     p_gamma = scipy.polyfit(mag_list[-3:], gamma[-3:], 1)
+    # pyrefly: ignore [not-callable, unsupported-operation]
     gamma_grid[mag_grid > mag_list[-1]] = np.maximum(scipy.polyval(p_gamma, mag_grid[mag_grid > mag_list[-1]]), 0.05)
     
     out_matrix = np.zeros((NZ, NM+1))
     out_matrix[:,0] = z_grid
     
     for i in range(NM):
+        # pyrefly: ignore [bad-index]
         pz = z_grid**gamma_grid[i] * np.exp(-(z_grid/z0_grid[i])**gamma_grid[i])
+        # pyrefly: ignore [missing-attribute]
         pz /= np.trapz(pz, z_grid)
         plt.plot(z_grid, pz, label=mag_grid[i])
         out_matrix[:,i+1] = pz

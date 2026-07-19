@@ -52,6 +52,7 @@ def fit_gm():
     ### By hand, blackbodies following da Cunha + Magphys
     from astropy.modeling.physical_models import BlackBody
     import astropy.units as u
+    # pyrefly: ignore [missing-module-attribute]
     from astropy.constants import c
     
     # Eazy for wavelength grid
@@ -101,6 +102,7 @@ def fit_gm():
         _a = nnls(_A[clip,:], mag_int[clip,i])
         model = _A.dot(_a[0])
 
+        # pyrefly: ignore [missing-attribute]
         norm = np.trapz(model/wave_grid, wave_grid)
         
         pl = plt.plot(wave_grid, mag_int[:,i]/norm, linewidth=4, alpha=0.2)
@@ -110,6 +112,7 @@ def fit_gm():
         plt.plot(wave_grid, model/norm, linewidth=1, color=pl[0].get_color(), alpha=0.8)
         
         mflam = model/wave_grid
+        # pyrefly: ignore [missing-attribute]
         mflam /= np.trapz(mflam, wave_grid)
         
         models_flam[:,i] = mflam
