@@ -8,6 +8,7 @@ with open(output_file, "w", newline="", encoding="utf-8") as outfile:
     writer = csv.writer(outfile)
 
     for i, file_name in enumerate(csv_files):
+        print(f'Merging {file_name}')
         with open(file_name, "r", encoding="utf-8") as infile:
             reader = csv.reader(infile)
 
