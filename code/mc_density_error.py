@@ -2,6 +2,79 @@ import numpy as np
 from astropy.cosmology import Planck18 as cosmo
 import astropy.units as u
 
+import numpy as np
+
+def calculate_single_target_fof_error(tg_ra, tg_dec, tg_z, tg_d, surround_ra, surround_dec, surround_z, surround_err, surround_d, Hz_surround, n_mc_realizations=100):
+    """
+    獨立的 FoF 蒙地卡羅誤差估算函數
+    """
+    all_ra = np.concatenate([[tg_ra], surround_ra])
+    all_dec = np.concatenate([[tg_dec], surround_dec])
+    
+    ra_rad = np.radians(all_ra)
+    dec_rad = np.radians(all_dec)
+    
+    # 預先計算夾角矩陣
+    cos_theta_mat = (np.sin(dec_rad)[:, None] * np.sin(dec_rad)[None, :] +
+                     np.cos(dec_rad)[:, None] * np.cos(dec_rad)[None, :] * 
+                     np.cos(ra_rad[:, None] - ra_rad[None, :]))
+    cos_theta_mat = np.clip(cos_theta_mat, -1.0, 1.0)
+    theta_mat = np.arccos(cos_theta_mat)
+    
+    mc_richness = []
+    
+    for _ in range(n_mc_realizations):
+        perturbed_z_surround = surround_z + np.random.normal(0, 1, size=len(surround_z)) * surround_err
+        perturbed_z_surround = np.maximum(perturbed_z_surround, 0.0)
+        
+        # 泰勒展開快速距離估算
+        dz_surround = perturbed_z_surround - surround_z
+        perturbed_d_surround = surround_d + (299792.458 / Hz_surround) * dz_surround
+        
+        all_z = np.concatenate([[tg_z], perturbed_z_surround])
+        all_d = np.concatenate([[tg_d], perturbed_d_surround])
+        
+        # BFS 滲流
+        visited = np.zeros(len(all_ra), dtype=bool)
+        queue = [0]
+        visited[0] = True
+        head = 0
+        while head < len(queue):
+            curr = queue[head]
+            head += 1
+            unvisited_idx = np.where(~visited)[0]
+            if len(unvisited_idx) == 0:
+                break
+                
+            zi = all_z[curr]
+            zj = all_z[unvisited_idx]
+            z_mean = 0.5 * (zi + zj)
+            delta_v = 299792.458 * np.abs(zi - zj) / (1.0 + z_mean)
+            
+            v_mask = delta_v <= 1000.0
+            if not np.any(v_mask):
+                continue
+                
+            candidates = unvisited_idx[v_mask]
+            cos_theta = (np.sin(dec_rad[curr]) * np.sin(dec_rad[candidates]) +
+                         np.cos(dec_rad[curr]) * np.cos(dec_rad[candidates]) * np.cos(ra_rad[curr] - ra_rad[candidates]))
+            cos_theta = np.clip(cos_theta, -1.0, 1.0)
+            theta = np.arccos(cos_theta)
+            
+            d_comoving_mean = 0.5 * (all_d[curr] + all_d[candidates])
+            d_a = d_comoving_mean / (1.0 + 0.5 * (all_z[curr] + all_z[candidates]))
+            d_perp = theta * d_a
+            
+            friends = candidates[d_perp <= 0.5]
+            for f in friends:
+                visited[f] = True
+                queue.append(f)
+                
+        mc_richness.append(len(queue))
+        
+    error = np.std(mc_richness)
+    return error
+
 def calculate_single_target_5nn_error(
     target_z,
     bg_z_phot,
