@@ -27,7 +27,7 @@ ax[1,1].hist(STRM_dens[:, 0].astype(np.float64), bins=20, label='STRM density di
 ax[1,1].set_title('Histogram of Density Values')
 ax[1,1].legend(loc='upper right', fontsize=8)
 
-fig.supxlabel('Density (5th nearest neighbor)', fontsize = 12)
+fig.supxlabel('Density Adaptive Kernel', fontsize = 12)
 fig.supylabel('Frequency', fontsize = 12)
 
 plt.tight_layout()
