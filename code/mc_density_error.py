@@ -133,6 +133,64 @@ def calculate_single_target_5nn_error(
     
     return err_photo_z, err_total
 
+def calculate_single_target_5nn_error_nonweighted(
+    target_z,
+    bg_z_phot,
+    bg_z_err,
+    angular_separations, # 輸入單位：角分 (arcminutes)
+    n_mc_realizations=100
+):
+    """
+    計算單個目標星系的 5NN 環境密度誤差棒。
+    
+    此函數會自動將角分（arcmin）轉換為物理投影距離（Mpc），並在 5 個固定鄰居上進行 MC 擾動。
+    """
+    # 1. 使用 Planck18 計算目標紅移處的投影角直徑距離 D_A (Mpc/rad)
+    da_target = cosmo.angular_diameter_distance(target_z).to_value(u.Mpc)
+    
+    # 2. 將角分 (arcmin) 轉為弧度 (rad)，再乘以 D_A 得到投影物理距離 (Mpc) [1]
+    theta_rad = np.radians(angular_separations / 60.0)
+    distances_mpc = da_target * theta_rad
+    
+    # 3. 鎖定物理距離最近的 5 個鄰居索引
+    nearest_5_d = distances_mpc
+    nearest_5_z_phot = bg_z_phot
+    nearest_5_z_err = bg_z_err
+    
+    mc_log_sigma5 = []
+    from scipy.stats import norm
+    # 4. 蒙地卡羅隨機擾動與標準高斯權重計算
+    for _ in range(n_mc_realizations):
+        # 僅擾動這 5 個鄰居的紅移
+        perturbed_z = nearest_5_z_phot + np.random.normal(0, 1) * nearest_5_z_err
+        
+        # 1. 定義靶星系紅移切片的物理邊界
+        z_min = target_z - 1000/300000
+        z_max = target_z + 1000/300000
+        
+        # 2. 直接使用標準正態分佈的 CDF 差值，計算在 [z_min, z_max] 區間內的物理概率
+        nearest_5_w = norm.cdf(z_max, loc=perturbed_z, scale=nearest_5_z_err) - norm.cdf(z_min, loc=perturbed_z, scale=nearest_5_z_err)
+        
+        # 3. 代入 5NN 表面環境密度公式
+        numerator = 5
+        denominator = np.pi * (nearest_5_d ** 2)
+        
+        if denominator > 0:
+            sigma_5 = numerator / denominator
+            mc_log_sigma5.append(np.log10(sigma_5))
+            
+    # 5. 計算測光紅移不確定性傳播誤差 (err_photo_z)
+    if len(mc_log_sigma5) > 1:
+        err_photo_z = np.std(mc_log_sigma5)
+    else:
+        err_photo_z = np.nan
+        
+    # 6. 融合 5NN 固有泊松漲落誤差 (0.1942 dex)
+    err_poisson = 0.4343 / np.sqrt(5.0)
+    err_total = np.sqrt(err_photo_z**2 + err_poisson**2)
+    
+    return err_photo_z, err_total
+
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -290,7 +348,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-def plot_nls1_distribution(dens, ax=None, d=None, p=None):
+def plot_nls1_distribution(dens, ax=None, d=None, p=None, label_loc = 'upper right'):
     """
     繪製 100% 自動分箱、無邊界截斷且帶解析泊松誤差棒的直方圖。
     
@@ -341,7 +399,7 @@ def plot_nls1_distribution(dens, ax=None, d=None, p=None):
     labels.extend([f'K-S Test p-value: {p:.4f}'])
     labels.extend([f'K-S Test d-value: {d:.4f}'])
 
-    ax.legend(handles= handles, labels = labels, fontsize=8, loc='upper right')
+    ax.legend(handles= handles, labels = labels, fontsize=8, loc=label_loc)
     ax.grid(True, linestyle=':', alpha=0.5)
 
     # 8. 僅在獨立繪圖模式下設置標題並執行 show()
