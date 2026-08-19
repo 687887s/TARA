@@ -372,12 +372,11 @@ def plot_nls1_distribution(dens, ax=None, d=None, p=None, label_loc = 'upper rig
         is_standalone = False
 
     # 4. 繪製標準的 overlapping 直方圖並獲取歸一化高度 (density=True)
-    b_heights, _, _ = ax.hist(b_dens, bins=bins, alpha=0.5, color='green', 
-                               label='Barred', density=True)
 
-    ub_heights, _, _ = ax.hist(ub_dens, bins=bins, alpha=0.5, color='red', 
-                                label='Unbarred', density=True)
-
+    b_heights, _, _ = ax.hist(b_dens, bins=bins, alpha=0.5, color='green',
+                            label='Barred', density=True)
+    ub_heights, _, _ = ax.hist(ub_dens, bins=bins, alpha=0.5, color='red',
+                            label='Unbarred', density=True)
     # 5. 解析計算每個 bin 的歸一化泊松誤差
     counts_b, _ = np.histogram(b_dens, bins=bins)
     counts_ub, _ = np.histogram(ub_dens, bins=bins)
@@ -386,12 +385,67 @@ def plot_nls1_distribution(dens, ax=None, d=None, p=None, label_loc = 'upper rig
     ub_bin_errs = np.sqrt(counts_ub) / (len(ub_dens) * bin_width)
 
     # 6. 繪製誤差棒（左右微調 10% bin 寬度，防止重疊）
-    ax.errorbar(bin_centers - bin_width * 0.1, b_heights, yerr=b_bin_errs, 
+    ax.errorbar(bin_centers - bin_width * 0.1, b_heights, yerr=b_bin_errs,
+                            fmt='none', ecolor='green', elinewidth=1.5, capsize=3)
+    ax.errorbar(bin_centers + bin_width * 0.1, ub_heights, yerr=ub_bin_errs,
+                            fmt='none', ecolor='red', elinewidth=1.5, capsize=3)
+    
+    text_placeholder = mpatches.Rectangle((0, 0), 1, 1, fill=False, edgecolor='none', visible = False)
+    handles, labels = ax.get_legend_handles_labels()
+    handles.extend([text_placeholder])
+    handles.extend([text_placeholder])
+    labels.extend([f'K-S Test p-value: {p:.4f}'])
+    labels.extend([f'K-S Test d-value: {d:.4f}'])
+
+    ax.legend(handles= handles, labels = labels, fontsize=8, loc=label_loc)
+    ax.grid(True, linestyle=':', alpha=0.5)
+
+    # 8. 僅在獨立繪圖模式下設置標題並執行 show()
+    if is_standalone:
+        ax.set_title('Environmental Density Distribution', fontsize=14, fontweight='bold')
+        plt.tight_layout()
+        plt.show()
+
+def plot_nls1_distribution_cumulative(dens, ax=None, d=None, p=None, label_loc = 'lower right'):
+    """
+    繪製 100% 自動分箱、無邊界截斷且帶解析泊松誤差棒的直方圖。
+    
+    當傳入 ax（子圖）時，會自動取消標題設定，避免多子圖標題重疊。
+    """
+    # 1. 提取數據並轉為 float
+    b_dens = dens[:, 0][dens[:, -1] == 'barred'].astype(float)
+    ub_dens = dens[:, 0][dens[:, -1] == 'unbarred'].astype(float)
+
+    # 2. 完全交給算法自動決定最優分箱邊界 (bins='auto')
+    all_data = np.concatenate([b_dens, ub_dens])
+    bins = np.histogram_bin_edges(all_data, bins='auto')
+    bin_centers = 0.5 * (bins[:-1] + bins[1:])
+    bin_width = np.diff(bins)  # 自動適應每個 bin 的實際寬度
+
+    # 3. 判斷繪圖模式：是單圖還是子圖 (Subplot)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(8, 6))
+        is_standalone = True
+    else:
+        is_standalone = False
+
+    # 4. 繪製標準的 overlapping 直方圖並獲取歸一化高度 (density=True)
+    b_heights, _, _ = ax.hist(b_dens, bins=bins, alpha=0.5, color='green',
+                            label='Barred', density=True, cumulative=True)
+    ub_heights, _, _ = ax.hist(ub_dens, bins=bins, alpha=0.5, color='red',
+                            label='Unbarred', density=True, cumulative=True)
+
+    # 【步驟 5】利用二項分佈公式，計算每個累積點的真實統計誤差（徹底消滅 bin_width）
+    # 注意：為了防止邊界處 p=0 或 p=1 導致誤差為 0，可以使用 np.clip 限制或常規二項式計算
+    # 由於 heights 陣列最後一項是 1.0，其誤差理論上為 0（因為 F(x_max) 必然是 100%）
+    b_bin_errs = np.sqrt(b_heights * (1.0 - b_heights) / len(b_dens))
+    ub_bin_errs = np.sqrt(ub_heights * (1.0 - ub_heights) / len(ub_dens))
+
+    # 【步驟 6】繪製誤差棒（此時誤差棒與累積高度完全對齊，再也不會因為 bins 變細而爆炸）
+    ax.errorbar(bin_centers - bin_width * 0.1, b_heights, yerr=b_bin_errs,
                 fmt='none', ecolor='green', elinewidth=1.5, capsize=3)
-
-    ax.errorbar(bin_centers + bin_width * 0.1, ub_heights, yerr=ub_bin_errs, 
+    ax.errorbar(bin_centers + bin_width * 0.1, ub_heights, yerr=ub_bin_errs,
                 fmt='none', ecolor='red', elinewidth=1.5, capsize=3)
-
     text_placeholder = mpatches.Rectangle((0, 0), 1, 1, fill=False, edgecolor='none', visible = False)
     handles, labels = ax.get_legend_handles_labels()
     handles.extend([text_placeholder])

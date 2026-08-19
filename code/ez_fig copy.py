@@ -1,0 +1,78 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from scipy.stats import pearsonr, linregress
+
+llr_dens_nn = np.load('/data/TARA/code/llr_dens_nn.npy', allow_pickle=True)
+xgb_dens_nn = np.load('/data/TARA/code/xgb_dens_nn.npy', allow_pickle=True)
+STRM_dens_nn = np.load('/data/TARA/code/STRM_dens_nn.npy', allow_pickle=True)
+llr_dens_vo = np.load('/data/TARA/code/llr_dens_vo.npy', allow_pickle=True)
+xgb_dens_vo = np.load('/data/TARA/code/xgb_dens_vo.npy', allow_pickle=True)
+STRM_dens_vo = np.load('/data/TARA/code/STRM_dens_vo.npy', allow_pickle=True)
+
+fig, ax = plt.subplots(3, figsize=(8, 8))
+ax[0].scatter(llr_dens_nn[:, 0].astype(np.float64), llr_dens_vo[:, 0].astype(np.float64), s = 10)
+ax[0].set_title('LLR')
+r, p = pearsonr(llr_dens_nn[:, 0].astype(np.float64), llr_dens_vo[:, 0].astype(np.float64))
+res = linregress(llr_dens_nn[:, 0].astype(np.float64), llr_dens_vo[:, 0].astype(np.float64))
+x = np.linspace(min(llr_dens_nn[:, 0].astype(np.float64)), max(llr_dens_nn[:, 0].astype(np.float64)), 5)
+y = res.slope * x + res.intercept
+ax[0].plot(x, y, color = 'r')
+text_placeholder = mpatches.Rectangle((0, 0), 1, 1, fill=False, edgecolor='none', visible = False)
+handles, labels = ax[0].get_legend_handles_labels()
+handles.extend([text_placeholder])
+handles.extend([text_placeholder])
+handles.extend([text_placeholder])
+handles.extend([text_placeholder])
+labels.extend([f'Pearson Test p-value: {p:.4f}'])
+labels.extend([f'Pearson Test r-value: {r:.4f}'])
+labels.extend([fr'$R^2$: {res.rvalue**2:.4f}'])
+labels.extend([fr'$Equation: {res.intercept:.4f}+{res.slope:.4f}X$'])
+ax[0].legend(handles = handles, labels = labels)
+
+ax[1].scatter(xgb_dens_nn[:, 0].astype(np.float64), xgb_dens_vo[:, 0].astype(np.float64), s = 10)
+ax[1].set_title('XGB')
+r, p = pearsonr(xgb_dens_nn[:, 0].astype(np.float64), xgb_dens_vo[:, 0].astype(np.float64))
+res = linregress(xgb_dens_nn[:, 0].astype(np.float64), xgb_dens_vo[:, 0].astype(np.float64))
+x = np.linspace(min(xgb_dens_nn[:, 0].astype(np.float64)), max(xgb_dens_nn[:, 0].astype(np.float64)), 5)
+y = res.slope * x + res.intercept
+ax[1].plot(x, y, color = 'r')
+text_placeholder = mpatches.Rectangle((0, 0), 1, 1, fill=False, edgecolor='none', visible = False)
+handles, labels = ax[1].get_legend_handles_labels()
+handles.extend([text_placeholder])
+handles.extend([text_placeholder])
+handles.extend([text_placeholder])
+handles.extend([text_placeholder])
+labels.extend([f'Pearson Test p-value: {p:.4f}'])
+labels.extend([f'Pearson Test r-value: {r:.4f}'])
+labels.extend([fr'$R^2$: {res.rvalue**2:.4f}'])
+labels.extend([fr'$Equation: {res.intercept:.4f}+{res.slope:.4f}X$'])
+ax[1].legend(handles = handles, labels = labels)
+
+ax[2].scatter(STRM_dens_nn[:, 0].astype(np.float64), STRM_dens_vo[:, 0].astype(np.float64), s = 10)
+ax[2].set_title('STRM')
+r, p = pearsonr(STRM_dens_nn[:, 0].astype(np.float64), STRM_dens_vo[:, 0].astype(np.float64))
+res = linregress(STRM_dens_nn[:, 0].astype(np.float64), STRM_dens_vo[:, 0].astype(np.float64))
+x = np.linspace(min(STRM_dens_nn[:, 0].astype(np.float64)), max(STRM_dens_nn[:, 0].astype(np.float64)), 5)
+y = res.slope * x + res.intercept
+ax[2].plot(x, y, color = 'r')
+text_placeholder = mpatches.Rectangle((0, 0), 1, 1, fill=False, edgecolor='none', visible = False)
+handles, labels = ax[2].get_legend_handles_labels()
+handles.extend([text_placeholder])
+handles.extend([text_placeholder])
+handles.extend([text_placeholder])
+handles.extend([text_placeholder])
+labels.extend([f'Pearson Test p-value: {p:.4f}'])
+labels.extend([f'Pearson Test r-value: {r:.4f}'])
+labels.extend([fr'$R^2$: {res.rvalue**2:.4f}'])
+labels.extend([fr'$Equation: {res.intercept:.4f}+{res.slope:.4f}X$'])
+ax[2].legend(handles = handles, labels = labels)
+
+
+fig.suptitle('Density Comparison')
+fig.supxlabel('Weighted 5th nn density', fontsize = 12)
+fig.supylabel('Weighted Voronoi method', fontsize = 12)
+
+plt.tight_layout()
+plt.savefig(f'/data/TARA/fig/density_comparison.png', dpi=300)
+plt.show()
